@@ -161,3 +161,4 @@ class FileStorage:
         except Exception as e:
             logger.error(f"Failed to delete note at index {index}: {e}")
             return False
+                             
