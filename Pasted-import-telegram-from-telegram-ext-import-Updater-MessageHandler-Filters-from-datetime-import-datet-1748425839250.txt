@@ -1,0 +1,65 @@
+import telegram
+from telegram.ext import Updater, MessageHandler, Filters
+from datetime import datetime, timedelta
+import time
+import random
+import threading
+import os
+
+BOT_TOKEN = "PASTE_YOUR_TOKEN_HERE"  # <--- Replace this line with your bot token
+NOTES_FILE = "notes.txt"
+CHAT_ID_FILE = "chat_id.txt"
+
+def handle_message(update, context):
+    text = update.message.text.strip()
+
+    if not os.path.exists(CHAT_ID_FILE):
+        with open(CHAT_ID_FILE, "w") as f:
+            f.write(str(update.message.chat_id))
+
+    if text:
+        with open(NOTES_FILE, "a") as f:
+            f.write(text + "\n")
+        context.bot.send_message(chat_id=update.message.chat_id, text="📝 Note saved!")
+
+def schedule_messages():
+    bot = telegram.Bot(token=BOT_TOKEN)
+
+    while True:
+        today = datetime.now().date()
+        if today.day % 2 == 0:
+            if os.path.exists(CHAT_ID_FILE) and os.path.exists(NOTES_FILE):
+                with open(CHAT_ID_FILE, "r") as f:
+                    chat_id = f.read().strip()
+
+                with open(NOTES_FILE, "r") as f:
+                    notes = [line.strip() for line in f if line.strip()]
+
+                if notes:
+                    message = random.choice(notes)
+                    random_hour = random.randint(8, 20)
+                    now = datetime.now()
+                    send_time = now.replace(hour=random_hour, minute=0, second=0, microsecond=0)
+
+                    if now > send_time:
+                        send_time += timedelta(days=1)
+
+                    wait_seconds = (send_time - now).total_seconds()
+                    time.sleep(wait_seconds)
+
+                    bot.send_message(chat_id=chat_id, text=f"📚 Reminder:\n{message}")
+                    time.sleep(86400)
+        else:
+            time.sleep(3600)
+
+def main():
+    updater = Updater(BOT_TOKEN, use_context=True)
+    dp = updater.dispatcher
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+
+    threading.Thread(target=schedule_messages, daemon=True).start()
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
