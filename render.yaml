@@ -1,0 +1,21 @@
+services:
+  - type: worker
+    name: telegram-notes-bot
+    env: python
+    plan: free
+    region: oregon
+    runtime: python-3.11.9
+    preDeployCommand: pip cache purge
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REMINDER_START_HOUR
+        value: "8"
+      - key: REMINDER_END_HOUR
+        value: "20"
+      - key: REMINDER_INTERVAL_DAYS
+        value: "2"
