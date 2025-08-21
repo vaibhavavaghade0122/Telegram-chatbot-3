@@ -329,4 +329,4 @@ class MultiUserScheduler:
             'active_users': active_users,
             'scheduled_reminders': scheduled_reminders,
             'running': self._running
-        }
+                                         }
